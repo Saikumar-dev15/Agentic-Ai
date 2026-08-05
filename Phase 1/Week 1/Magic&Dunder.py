@@ -72,3 +72,50 @@ laptop3 = Laptop("Lenova", 8)
 
 #print(laptop1 == laptop2)
 #print(laptop2 == laptop3)
+
+
+
+
+class Player():
+    def __init__(self,name, score):
+        self.name = name
+        self.score = score
+        
+
+    def __lt__(self, other):
+        return self.score < other.score
+    
+p1 =Player("Sai Kumar", 7)
+p2 =Player("Mohit", 18)
+p3 = Player("Gowtham", 45)
+p4 = Player("Grishmant", 99)
+
+#print(p1 < p2)
+#print(p1 > p3)
+#print(p1 > p4)
+
+
+
+
+class Movielist():
+    def __init__(self):
+        self.movies = ["RRR", "Bahubali", "Devara", "Salaar"]
+        
+    def __getitem__(self, index):
+        return self.movies[index]
+        
+    def __setitem__(self, index, value):
+        self.movies[index] = value
+        
+    def __contains__(self, movies):
+        return movies in self.movies
+    
+    
+M = Movielist()
+M[1] = "Bahubali 2"
+print(M[3])
+print(M.movies)
+print("OG" in Movielist)
+print("Devara" in Movielist)
+
+
