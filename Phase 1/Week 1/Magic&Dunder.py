@@ -104,18 +104,21 @@ class Movielist():
     def __getitem__(self, index):
         return self.movies[index]
         
-    def __setitem__(self, index, value):
+    def __setitem__(self, index, value):                   #We can change index values
         self.movies[index] = value
         
-    def __contains__(self, movies):
+    def __contains__(self, movies):                #True or False
         return movies in self.movies
     
+    def __delitem__(self, index):
+        del self.movies[index]
     
 M = Movielist()
 M[1] = "Bahubali 2"
 print(M[3])
 print(M.movies)
-print("OG" in Movielist)
-print("Devara" in Movielist)
-
+print("OG" in M)
+print("Devara" in M)
+del M[0]
+print(M.movies)
 
