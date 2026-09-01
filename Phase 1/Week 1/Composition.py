@@ -30,17 +30,36 @@ class Database:
     def save(self):
         print("Saving Violation")
         
-class HelmetSystem:
-    def __init__(self):
-        self.detector = HelmetDetector()
-        self.ocr = PlateOCR()
-        self.database = Database()
+#class HelmetSystem:
+#    def __init__(self):
+#        self.detector = HelmetDetector()
+#        self.ocr = PlateOCR()
+#        self.database = Database()
         
+#    def process(self):
+#        self.detector.detect()
+#        self.ocr.read_plate()
+#        self.database.save()
+        
+#system = HelmetSystem()
+#system.process()
+        
+        
+# Composition with constructor Arguments
+class HelmetSystem:
+    def __init__(self,detector,ocr,database):
+        self.detector = detector
+        self.ocr = ocr 
+        self.database = database
+
     def process(self):
         self.detector.detect()
         self.ocr.read_plate()
         self.database.save()
         
-system = HelmetSystem()
+detector = HelmetDetector()
+ocr = PlateOCR()
+database = Database()
+
+system = HelmetSystem(detector, ocr, database)
 system.process()
-        
