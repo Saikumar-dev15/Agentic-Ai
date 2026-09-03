@@ -121,7 +121,7 @@ try:
     
     balance = 15000
     
-    if age < 18:
+    if age <= 18:
         raise InvalidAgeError("You are not eligible to access. You must be 18 or older to get access")
     
     if amount <= 0 :
@@ -147,3 +147,5 @@ except InvalidAmountError as e:
     
 except InsufficientBalanceError as e:
     print(e)
+    
+    
