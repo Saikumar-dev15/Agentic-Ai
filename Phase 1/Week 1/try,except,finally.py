@@ -75,3 +75,75 @@ except ValueError:
 finally:
     print("Transaction Completed..")
         
+        
+        
+
+#Custom Exception
+
+class InsufficientBalanceError(Exception):
+    def __init__(self, balance, amount):
+        self.balance = balance
+        self.amount = amount
+
+        super().__init__(
+            f"Balance: {balance}, Withdrawal: {amount}"
+        )
+        
+try:
+    balance = 5000
+    amount  = 7000
+    
+    if amount > balance:
+        raise InsufficientBalanceError(balance, amount)
+    
+except InsufficientBalanceError as e:
+    print(e)
+
+
+
+
+
+
+#Multiple Custom Exceptions
+
+class InvalidAgeError(Exception):
+    pass
+
+class InsufficientBalanceError(Exception):
+    pass
+
+class InvalidAmountError(Exception):
+    pass
+
+try:
+    age = int(input("Enter your Age: "))
+    amount = int(input("Enter a amount: "))
+    
+    balance = 15000
+    
+    if age < 18:
+        raise InvalidAgeError("You are not eligible to access. You must be 18 or older to get access")
+    
+    if amount <= 0 :
+        raise InvalidAmountError("you should enter greater than 0 amount. 0 is not withdrawal amount.")
+    
+    elif amount > balance:
+        raise InsufficientBalanceError("Please check the entered amount.")
+    
+    else :
+        balance -= amount
+        print(f"Withdrawal amount : {amount}")
+        print(f"Remaining Balance : {balance}")
+    print("Succesfully Withdrawal...")
+    
+except ValueError:
+    print("Invalid amount.")
+    
+except InvalidAgeError as e:
+    print(e)
+    
+except InvalidAmountError as e:
+    print(e)
+    
+except InsufficientBalanceError as e:
+    print(e)
