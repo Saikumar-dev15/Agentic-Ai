@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS public.skills;
 DROP TABLE IF EXISTS public.jobs;
 
 
--- 1. Jobs table
+
 CREATE TABLE public.jobs (
     job_id INT PRIMARY KEY,
     company_id INT,
@@ -20,7 +20,7 @@ CREATE TABLE public.jobs (
 );
 
 
--- 2. Skills table
+
 CREATE TABLE public.skills (
     skill_id INT PRIMARY KEY,
     skill_name TEXT,
@@ -28,7 +28,7 @@ CREATE TABLE public.skills (
 );
 
 
--- 3. Job Applied table
+
 CREATE TABLE public.job_applied (
     application_id INT PRIMARY KEY,
     job_id INT,
@@ -58,7 +58,7 @@ CREATE TABLE public.job_applied (
 );
 
 
--- 4. Job Skills table
+
 CREATE TABLE public.job_skills (
     job_id INT,
     skill_id INT,
@@ -76,7 +76,6 @@ CREATE TABLE public.job_skills (
 );
 
 
--- 5. Interviews table
 CREATE TABLE public.interviews (
     interview_id INT PRIMARY KEY,
     application_id INT,
@@ -91,7 +90,7 @@ CREATE TABLE public.interviews (
 );
 
 
--- 6. Indexes
+
 CREATE INDEX idx_interviews_application_id
     ON public.interviews(application_id);
 

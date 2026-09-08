@@ -13,3 +13,14 @@ FROM january_jobs;
 
 
 -- Exercise
+
+SELECT 
+    company_id,
+    COUNT(*)
+FROM
+    public.jobs
+GROUP BY 
+    company_id
+    
+SELECT name
+FROM  jobs
