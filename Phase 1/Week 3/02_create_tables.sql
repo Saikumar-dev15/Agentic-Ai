@@ -97,15 +97,15 @@ CREATE INDEX idx_interviews_application_id
 CREATE INDEX idx_job_skills_skill_id
     ON public.job_skills(skill_id);
 
-SELECT *
---      job_title AS title,
---      job_status AS Status,
---      posted_date AS date,
+SELECT 
+      job_title ,
+      job_status AS Status,
+      posted_date AS date
 --    COUNT(job_id) AS jobs_posted_count,
 --    EXTRACT (MONTH FROM posted_date) AS date_month
 --    EXTRACT (YEAR FROM posted_date) AS date_year
 FROM 
-    public.jobs;
+    public.job_applied;
 /*WHERE
      job_title = 'Data Analyst'
 GROUP BY
