@@ -1,17 +1,28 @@
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException, Depends
 from pydantic import BaseModel
+from fastapi.params import Body
 from typing import Optional
 import psycopg2
+from random import randrange
 from psycopg2.extras import RealDictCursor
 import time
+from . import models  
+from .database import engine, SessionLocal
+from sqlalchemy.orm import Session
+
+models.Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI()
 
+def get_db():
+    db = SessionLocal()
+    try :
+        yield db
 
-# =========================================================
-# PYDANTIC MODEL
-# =========================================================
+    finally :
+        db.close()
+
 
 class Post(BaseModel):
     title: str
@@ -56,6 +67,11 @@ def root():
 # =========================================================
 # GET ALL POSTS
 # =========================================================
+
+@app.get("/sqlalchemy")
+def test_posts(db: Session =Depends(get_db)):
+    return {"status": "success"}
+
 
 @app.get("/posts")
 def get_posts():
@@ -180,16 +196,23 @@ def update_post(id: int, post: Post):
 
     return {"data": updated_post}
 
-{
-    "title": "My First Post",
-    "content": "Learning FastAPI with PostgreSQL",
-    "published": True,
-    "rating": 5
-}
 
-{
-    "title": "Updated Post",
-    "content": "I am learning FastAPI",
-    "published": True,
-    "rating": 4
-}
+# =========================================================
+# EXAMPLE REQUEST BODIES (for reference / Postman)
+# =========================================================
+
+# Create Post:
+# {
+#     "title": "My First Post",
+#     "content": "Learning FastAPI with PostgreSQL",
+#     "published": True,
+#     "rating": 5
+# }
+
+# Update Post:
+# {
+#     "title": "Updated Post",
+#     "content": "I am learning FastAPI",
+#     "published": True,
+#     "rating": 4
+# }
