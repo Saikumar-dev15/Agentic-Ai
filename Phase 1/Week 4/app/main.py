@@ -31,6 +31,7 @@ class Post(BaseModel):
     rating: Optional[int] = None
 
 
+
 # =========================================================
 # DATABASE CONNECTION
 # =========================================================
@@ -146,26 +147,28 @@ def get_post(id: int, db: Session =Depends(get_db)):
 
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int):
+def delete_post(id: int, db: Session =Depends(get_db)):
 
-    cursor.execute(
-        """
-        DELETE FROM posts
-        WHERE id = %s
-        RETURNING *
-        """,
-        (str(id),)
-    )
-    deleted_post = cursor.fetchone()
+    #cursor.execute(
+    #    """
+    #    DELETE FROM posts
+    #    WHERE id = %s
+    #    RETURNING *
+    #    """,
+    #    (str(id),)
+    #)
+    #deleted_post = cursor.fetchone()
 
-    conn.commit()
+    #conn.commit()
 
-    if deleted_post is None:
+    post = db.query(models.post).filter(models.post.id == id)
+    if post.first() == None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id: {id} does not exist"
         )
-
+    post.delete(synchronize_session=False)
+    db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -174,38 +177,28 @@ def delete_post(id: int):
 # =========================================================
 
 @app.put("/posts/{id}")
-def update_post(id: int, post: Post):
-
-    cursor.execute(
-        """
-        UPDATE posts
-        SET title = %s,
-            content = %s,
-            published = %s,
-            rating = %s
-        WHERE id = %s
-        RETURNING *
-        """,
-        (
-            post.title,
-            post.content,
-            post.published,
-            post.rating,
-            id
-        )
-    )
-
-    updated_post = cursor.fetchone()
-
-    conn.commit()
-
-    if updated_post is None:
+def update_post(id: int, updated_post: Post, db: Session = Depends(get_db)):
+    
+    post = db.query(models.post).filter(models.post.id == id).first()
+    
+    if post is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id: {id} does not exist"
         )
+    
+    post.title = updated_post.title
+    post.content = updated_post.content
+    post.published = updated_post.published
+    
+    db.commit()
+    db.refresh(post)
+    
+    return {"data": post}
 
-    return {"data": updated_post}
+
+
+
 
 
 # =========================================================
