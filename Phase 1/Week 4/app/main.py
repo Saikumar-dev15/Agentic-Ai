@@ -6,22 +6,22 @@ import psycopg2
 from random import randrange
 from psycopg2.extras import RealDictCursor
 import time
-from . import models  
-from .database import engine, SessionLocal
-from sqlalchemy.orm import Session
+try:
+    from . import models
+    from .database import engine, SessionLocal, get_db
+except ImportError:
+    import models
+    from database import engine, SessionLocal, get_db
+
+from sqlalchemy.orm import Session 
+
 
 models.Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI()
 
-def get_db():
-    db = SessionLocal()
-    try :
-        yield db
 
-    finally :
-        db.close()
 
 
 class Post(BaseModel):
@@ -68,15 +68,18 @@ def root():
 # GET ALL POSTS
 # =========================================================
 
-@app.get("/sqlalchemy")
+@app.get("/sqlalchemy")                            #dependent method to get information from pgadmin
 def test_posts(db: Session =Depends(get_db)):
-    return {"status": "success"}
+    
+    posts = db.query(models.post).all()
+    #return {"status": "success"}             #this is for sql db 
+    return {"data": posts}                    #this is for postman 
 
 
-@app.get("/posts")
+@app.get("/posts")                                 #second method to run in postman to get information from pgadmin
 def get_posts():
 
-    cursor.execute("SELECT * FROM posts")
+    cursor.execute("SELECT * FROM posts")                #this is regular sql method
 
     posts = cursor.fetchall()
 
@@ -88,26 +91,33 @@ def get_posts():
 # =========================================================
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_post(post: Post):
+def create_post(post: Post, db: Session =Depends(get_db)):
 
-    cursor.execute(
-        """
-        INSERT INTO posts (title, content, published, rating)
-        VALUES (%s, %s, %s, %s)
-        RETURNING *
-        """,
-        (
-            post.title,
-            post.content,
-            post.published,
-            post.rating
-        )
-    )
-
-    new_post = cursor.fetchone()
-
-    conn.commit()
-
+    #cursor.execute(                                                           #this is Sqlalchemy
+    #    """
+    #    INSERT INTO posts (title, content, published, rating)
+    #    VALUES (%s, %s, %s, %s)
+    #    RETURNING *
+    #    """,
+    #    (
+    #        post.title,
+    #        post.content,
+    #        post.published,
+    #        post.rating
+    #    )
+    #)
+    #new_post = cursor.fetchone()
+    #conn.commit()
+    
+    print(post.dict())
+    new_post = models.post(                                                                               #this code is based on python that create posts
+        #title= post.title , content=post.content , published=post.published
+        **post.dict()                                              #we can see output in terminal
+    ) 
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    
     return {"data": new_post}
 
 
@@ -116,14 +126,15 @@ def create_post(post: Post):
 # =========================================================
 
 @app.get("/posts/{id}")
-def get_post(id: int):
+def get_post(id: int, db: Session =Depends(get_db)):
 
-    cursor.execute(
-        "SELECT * FROM posts WHERE id = %s",
-        (id,)
-    )
-
-    post = cursor.fetchone()
+    #cursor.execute(
+    #    "SELECT * FROM posts WHERE id = %s",
+    #    (id,)
+    #)
+    #post = cursor.fetchone()
+    post = db.query(models.post).filter(models.post.id == id).first()
+    #print(post)
 
     if post is None:
         raise HTTPException(
