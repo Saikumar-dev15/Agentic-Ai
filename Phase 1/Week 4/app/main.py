@@ -9,11 +9,12 @@ import time
 try:
     from . import models, schemas, utils
     from .database import engine, SessionLocal, get_db
-    from .router import post, user 
+    from .router import post, user, auth 
 except ImportError:
     import models, schemas, utils
     from database import engine, SessionLocal, get_db
-    from router import post, user
+    from router import post, user, auth
+
 
 
 from sqlalchemy.orm import Session 
@@ -76,6 +77,7 @@ def find_index_post(id):
         
 app.include_router(post.router)
 app.include_router(user.router)
+app.include_router(auth.router)
 
 
 
