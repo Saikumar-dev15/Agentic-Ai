@@ -1,21 +1,22 @@
 from fastapi import FastAPI, Response, status, HTTPException, Depends
 from pydantic import BaseModel
+from passlib.context import CryptContext
 from fastapi.params import Body
-from typing import Optional
+from typing import Optional , List
 import psycopg2
 from random import randrange
 from psycopg2.extras import RealDictCursor
 import time
 try:
-    from . import models
+    from . import models , schemas
     from .database import engine, SessionLocal, get_db
 except ImportError:
-    import models
+    import models, schemas
     from database import engine, SessionLocal, get_db
 
 from sqlalchemy.orm import Session 
 
-
+pwd_context = CryptContext(schemes= ["bcrypt"], deprecated="auto")
 models.Base.metadata.create_all(bind=engine)
 
 
@@ -77,13 +78,12 @@ def test_posts(db: Session =Depends(get_db)):
     return {"data": posts}                    #this is for postman 
 
 
-@app.get("/posts")                                 #second method to run in postman to get information from pgadmin
-def get_posts():
-
-    cursor.execute("SELECT * FROM posts")                #this is regular sql method
-
-    posts = cursor.fetchall()
-
+@app.get("/posts" , response_model=List[schemas.Post])                                 #second method to run in postman to get information from pgadmin
+def get_posts(db: Session = Depends(get_db)):
+    # cursor.execute("SELECT * FROM posts")                #this is regular sql method
+    # posts = cursor.fetchall()
+     
+    posts = db.query(models.post).all()
     return {"data": posts}
 
 
@@ -91,24 +91,24 @@ def get_posts():
 # CREATE POST
 # =========================================================
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_post(post: Post, db: Session =Depends(get_db)):
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
+def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
 
-    #cursor.execute(                                                           #this is Sqlalchemy
-    #    """
-    #    INSERT INTO posts (title, content, published, rating)
-    #    VALUES (%s, %s, %s, %s)
-    #    RETURNING *
-    #    """,
-    #    (
-    #        post.title,
-    #        post.content,
-    #        post.published,
-    #        post.rating
-    #    )
-    #)
-    #new_post = cursor.fetchone()
-    #conn.commit()
+    # cursor.execute(                                                           #this is Sqlalchemy
+    #     """
+    #     INSERT INTO posts (title, content, published, rating)
+    #     VALUES (%s, %s, %s, %s)
+    #     RETURNING *
+    #     """,
+    #     (
+    #         post.title,
+    #         post.content,
+    #         post.published,
+    #         post.rating
+    #     )
+    # )
+    # new_post = cursor.fetchone()
+    # conn.commit()
     
     print(post.dict())
     new_post = models.post(                                                                               #this code is based on python that create posts
@@ -119,7 +119,8 @@ def create_post(post: Post, db: Session =Depends(get_db)):
     db.commit()
     db.refresh(new_post)
     
-    return {"data": new_post}
+    return new_post
+
 
 
 # =========================================================
@@ -199,24 +200,30 @@ def update_post(id: int, updated_post: Post, db: Session = Depends(get_db)):
 
 
 
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    # Check if email is already registered
+    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User with email '{user.email}' already exists"
+        )
+
+    new_user = models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return new_user
 
 
-# =========================================================
-# EXAMPLE REQUEST BODIES (for reference / Postman)
-# =========================================================
-
-# Create Post:
-# {
-#     "title": "My First Post",
-#     "content": "Learning FastAPI with PostgreSQL",
-#     "published": True,
-#     "rating": 5
-# }
-
-# Update Post:
-# {
-#     "title": "Updated Post",
-#     "content": "I am learning FastAPI",
-#     "published": True,
-#     "rating": 4
-# }
+@app.get("/users/{id}", response_model=schemas.UserOut)
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id: {id} does not exist"
+        )
+    return user
