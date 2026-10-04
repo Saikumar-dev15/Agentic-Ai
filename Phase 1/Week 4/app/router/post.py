@@ -2,10 +2,10 @@ from fastapi import FastAPI, Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session 
 from typing import Optional, List
 try:
-    from .. import models, schemas, utils
+    from .. import models, schemas, utils, oauth2
     from ..database import  get_db
 except ImportError:
-    import models, schemas, utils
+    import models, schemas, utils, oauth2
     from database import  get_db
 
 
@@ -21,15 +21,15 @@ router = APIRouter(
 # =========================================================
 
 @router.get("/sqlalchemy")                            #dependent method to get information from pgadmin
-def test_posts(db: Session =Depends(get_db)):
+def test_posts(db: Session =Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     posts = db.query(models.post).all()
     #return {"status": "success"}             #this is for sql db 
     return {"data": posts}                    #this is for postman 
 
 
-@router.get("/", response_model=List[schemas.Post])
-def get_posts(db: Session = Depends(get_db)):
+@router.get("", response_model=List[schemas.Post])
+def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     posts = db.query(models.post).all()
     return posts
 
@@ -39,8 +39,10 @@ def get_posts(db: Session = Depends(get_db)):
 # CREATE POST
 # =========================================================
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
-def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
+def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+
+
 
     # cursor.execute(                                                           #this is Sqlalchemy
     #     """
@@ -58,7 +60,9 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
     # new_post = cursor.fetchone()
     # conn.commit()
     
+    print(current_user.email)
     print(post.dict())
+    
     new_post = models.post(                                                                               #this code is based on python that create posts
         #title= post.title , content=post.content , published=post.published
         **post.dict()                                              #we can see output in terminal
@@ -76,7 +80,7 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
 # =========================================================
 
 @router.get("/{id}", response_model=schemas.Post)
-def get_post(id: int, db: Session = Depends(get_db)):
+def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     # cursor.execute(
     #     "SELECT * FROM posts WHERE id = %s",
@@ -95,7 +99,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db)):
+def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     # cursor.execute(
     #     """
@@ -124,7 +128,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 # =========================================================
 
 @router.put("/{id}", response_model=schemas.Post)
-def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends(get_db)):
+def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     post = db.query(models.post).filter(models.post.id == id).first()
     
