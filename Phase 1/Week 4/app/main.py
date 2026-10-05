@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response, status, HTTPException, Depends
+from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.params import Body
 from typing import Optional, List
@@ -36,28 +36,6 @@ class Post(BaseModel):
 
 
 
-# =========================================================
-# DATABASE CONNECTION
-# =========================================================
-
-while True:
-    try:
-        conn = psycopg2.connect(
-            host="localhost",
-            database="fastapi",
-            user="postgres",
-            password="postgres123",
-            cursor_factory=RealDictCursor
-        )
-
-        cursor = conn.cursor()
-
-        print("Database connection was successful")
-        break
-
-    except Exception as e:
-        print(f"Database connection error: {e}")
-        time.sleep(2)
 
 
 my_posts = [{"title": "title of post 1", "content":"content of post 1", "id":1},
