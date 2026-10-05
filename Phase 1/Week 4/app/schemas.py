@@ -10,9 +10,19 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     pass
 
+class UserOut(BaseModel):
+    id: int
+    email: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class Post(PostBase):
     id: int
     created_at: datetime
+    owner_id : int
+    owner : UserOut
 
     class Config:
         from_attributes = True
@@ -22,14 +32,6 @@ class UserCreate(BaseModel):
     email: str
     password: str
 
-
-class UserOut(BaseModel):
-    id: int
-    email: str
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
 
     
 class UserLogin(BaseModel):
