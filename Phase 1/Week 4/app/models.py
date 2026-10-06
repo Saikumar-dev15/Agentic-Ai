@@ -7,7 +7,7 @@ from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP , text, Forei
 from sqlalchemy.orm import relationship
 
 
-class post(Base):
+class Post(Base):
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, nullable=False)
@@ -19,6 +19,9 @@ class post(Base):
     
     owner = relationship("User")
 
+# Alias for backwards compatibility with lowercase 'post'
+post = Post
+
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, nullable=False)
@@ -27,3 +30,10 @@ class User(Base):
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text('now()'))
     
+    
+    
+class Vote(Base):
+    __tablename__ = "votes"
+    
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True) 
