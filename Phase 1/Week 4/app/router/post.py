@@ -7,7 +7,7 @@ try:
 except ImportError:
     import models, schemas, utils, oauth2
     from database import  get_db
-
+from sqlalchemy import func
 
 router = APIRouter(
     prefix="/posts" ,
@@ -27,12 +27,18 @@ def test_posts(db: Session = Depends(get_db)):
     return {"data": posts}                    #this is for postman 
 
 
-@router.get("", response_model=List[schemas.Post])
+#@router.get("", response_model=List[schemas.Post])
+@router.get("/")
 def get_posts(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_user), limit: int= 10, skip: int =0, search: Optional[str]= ""):
     print(limit)
     print(search)
     posts = db.query(models.post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    return posts
+    
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).all()
+    #print(results)
+    #return posts
+    return results
 
 
 
