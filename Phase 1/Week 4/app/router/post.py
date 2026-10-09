@@ -27,17 +27,11 @@ def test_posts(db: Session = Depends(get_db)):
     return {"data": posts}                    #this is for postman 
 
 
-#@router.get("", response_model=List[schemas.Post])
-@router.get("/")
-def get_posts(db: Session = Depends(get_db),current_user: int = Depends(oauth2.get_current_user), limit: int= 10, skip: int =0, search: Optional[str]= ""):
-    print(limit)
-    print(search)
-    posts = db.query(models.post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    
+@router.get("", response_model=List[schemas.PostOut])
+@router.get("/", response_model=List[schemas.PostOut], include_in_schema=False)
+def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
-        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).all()
-    #print(results)
-    #return posts
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return results
 
 
@@ -47,6 +41,7 @@ def get_posts(db: Session = Depends(get_db),current_user: int = Depends(oauth2.g
 # =========================================================
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post, include_in_schema=False)
 def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
 
@@ -86,16 +81,18 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current
 # GET SINGLE POST
 # =========================================================
 
-@router.get("/{id}", response_model=schemas.Post)
-def get_post(id: int, db: Session = Depends(get_db)):
+@router.get("/{id}", response_model=schemas.PostOut)
+def get_post(id: int, db: Session = Depends(get_db) ,current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     
     # cursor.execute(
     #     "SELECT * FROM posts WHERE id = %s",
     #     (id,)
     # )
     # post = cursor.fetchone()
-    post = db.query(models.post).filter(models.post.id == id).first()
-
+    #post = db.query(models.post).filter(models.post.id == id).first()
+    
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+            models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
     if post is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
