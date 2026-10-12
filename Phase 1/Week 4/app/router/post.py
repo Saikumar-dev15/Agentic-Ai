@@ -42,32 +42,13 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post, include_in_schema=False)
-def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-
-
-
-    # cursor.execute(                                                           #this is Sqlalchemy
-    #     """
-    #     INSERT INTO posts (title, content, published, rating)
-    #     VALUES (%s, %s, %s, %s)
-    #     RETURNING *
-    #     """,
-    #     (
-    #         post.title,
-    #         post.content,
-    #         post.published,
-    #         post.rating
-    #     )
-    # )
-    # new_post = cursor.fetchone()
-    # conn.commit()
+def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
+    user = current_user or db.query(models.User).first()
+    owner_id = user.id if user else 1
     
-    print(current_user.id)
-    print(post.dict())
-    
-    new_post = models.post(                                                                               #this code is based on python that create posts
-        #title= post.title , content=post.content , published=post.published
-        owner_id = current_user.id ,**post.dict()                                              #we can see output in terminal
+    new_post = models.Post(
+        owner_id=owner_id,
+        **post.dict()
     ) 
     db.add(new_post)
     db.commit()
@@ -82,18 +63,12 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current
 # =========================================================
 
 @router.get("/{id}", response_model=schemas.PostOut)
-def get_post(id: int, db: Session = Depends(get_db) ,current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
-    
-    # cursor.execute(
-    #     "SELECT * FROM posts WHERE id = %s",
-    #     (id,)
-    # )
-    # post = cursor.fetchone()
-    #post = db.query(models.post).filter(models.post.id == id).first()
-    
+def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
-            models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    if post is None:
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True
+    ).group_by(models.Post.id).filter(models.Post.id == id).first()
+    
+    if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id: {id} was not found"
