@@ -1,6 +1,8 @@
 services:
   api:
     build: .
+    image: fastapi-app 
+          
     depends_on:
       - postgres
     ports:
@@ -8,7 +10,7 @@ services:
     volumes:
       - ./:/usr/src/app:ro
 
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    #command: uvicorn app.main:app --host 0.0.0.0 --port 8000
             
     environment:
       - DATABASE_HOSTNAME=postgres
