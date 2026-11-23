@@ -27,7 +27,7 @@ selected = max(range(len(prob)), key=lambda i: prob[i])
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 from google import genai
 
 # Step 1: Load environment variables

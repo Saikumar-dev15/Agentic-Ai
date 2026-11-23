@@ -1,4 +1,4 @@
-import tiktoken
+import tiktoken # type: ignore
 
 encoding = tiktoken.get_encoding("o200k_base")
 
