@@ -23,21 +23,40 @@ selected = max(range(len(prob)), key=lambda i: prob[i])
 #print(selected)
 
 
+
+
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 from google import genai
 
-client = genai.Client(api_key="")
+# Step 1: Load environment variables
+env_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(env_path)
 
+# Step 2: Retrieve API key
+api_key = os.getenv("GOOGLE_API_KEY")
+
+if not api_key:
+    raise ValueError("Google API key not found!")
+
+# Step 3: Create Gemini client
+client = genai.Client(api_key=api_key)
+
+# Step 4: Define prompt
 prompt = "Write a short story about a robot that discovers emotions."
 
+# Step 5: Experiment with temperatures
 temperatures = [0.2, 0.7, 1.2]
 
 for temp in temperatures:
+
     response = client.models.generate_content(
-        model="gemini-3.8-flash",
+        model="gemini-2.5-flash",
         contents=prompt,
         config={"temperature": temp}
     )
-    
-    print("Temperature : ", temp)
+
+    print("Temperature:", temp)
     print(response.text)
     print("-" * 50)

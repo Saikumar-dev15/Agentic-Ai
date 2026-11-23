@@ -14,9 +14,9 @@ def tokenizer(text):
     
     encoding = tiktoken.get_encoding("o200k_base")
     
-    token = encoding.encode(user_input)
+    token = encoding.encode(text)
     
-    print(f"Text : {user_input}")
+    print(f"Text : {text}")
     print(f"Tokens: {token}")
     print(f"Length of the tokens : {len(token)}")
     
