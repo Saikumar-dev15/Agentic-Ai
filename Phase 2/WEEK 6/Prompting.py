@@ -33,3 +33,32 @@ except Exception as e:
     
 finally: 
     Client.close()
+    
+    
+#System Prompting....
+from google.genai import types # type: ignore
+
+try :
+    response = Client.models.generate_content(
+        model = "gemini-3.5-flash",
+        config =types.GenerateContentConfig(
+            system_instruction ="""
+            you are python programming tutor.
+            
+            Explain concepts of python to begginer.
+            explain the code line by line to user.
+            give three practice problems.
+            Don't go to advance level until the user instruct.
+            make master in the programming from basics.
+            """
+        ),
+        contents = "Explain the Python dictionaries."
+    )
+    print(response.text)
+    
+except Exception as e:
+    ValueError ("Something went wrong")
+    print(e)
+    
+finally:
+    Client.close()
